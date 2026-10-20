@@ -21,9 +21,7 @@ jobs:
           distribution: corretto
           java-version: '21'
           cache: maven
-
-      # clean previous builds, compile, then run unit tests and integration tests
-      # (integration tests use Testcontainers, which starts a PostgreSQL container
-      # through the Docker engine preinstalled on the ubuntu runner)
+          
+      #finally build your app with the latest command
       - name: Build and test with Maven
         run: mvn clean verify --file ./simple-api/pom.xml
