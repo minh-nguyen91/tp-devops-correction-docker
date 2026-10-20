@@ -27,7 +27,7 @@ jobs:
         run: mvn clean verify --file ./simple-api/pom.xml
 
       - name: Build and test with SonarQube
-        run: mvn -B verify sonar:sonar -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} -Dsonar.organization=${{ secrets.ORGANIZATION_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file ./simple-api/pom.xml
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} -Dsonar.organization=${{ secrets.ORGANIZATION_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   # define job to build and publish docker image
   build-and-push-docker-image:
