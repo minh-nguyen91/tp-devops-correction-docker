@@ -31,14 +31,14 @@ jobs:
     needs: test-backend
     # run only when code is compiling and tests are passing
     runs-on: ubuntu-24.04
+    # gives access to the secrets stored in the "docker_hub" environment
+    environment: docker_hub
 
     # steps to perform in job
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # log in to Docker Hub with credentials stored as GitHub secrets
-      # (never written in clear in the repository)
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
