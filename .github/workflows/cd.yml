@@ -1,0 +1,54 @@
+name: CD devops 2025
+on:
+  # triggered when the CI workflow (main.yml) finishes
+  workflow_run:
+    workflows: ["CI devops 2025"]
+    types: [completed]
+    # only for CI runs on the main branch
+    branches: [main]
+
+jobs:
+  # define job to build and publish docker image
+  build-and-push-docker-image:
+    # run only if test-backend passed (CI succeeded) and the CI was started by a push on main,
+    # not by a pull request whose source branch is called main
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-24.04
+    # gives access to the secrets stored in the "docker_hub" environment
+    environment: docker_hub
+
+    # steps to perform in job
+    steps:
+      # check out exactly the commit that was tested by the CI
+      # (by default workflow_run checks out the latest commit of the default branch)
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      # this workflow only runs for main, so images are always pushed
+      - name: Build image and push backend
+        uses: docker/build-push-action@v6
+        with:
+          # relative path to the place where source code with Dockerfile is located
+          context: ./simple-api
+          # Note: tags has to be all lower-case
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-simple-api:latest
+          push: true
+
+      - name: Build image and push database
+        uses: docker/build-push-action@v6
+        with:
+          context: ./database
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-database:latest
+          push: true
+
+      - name: Build image and push httpd
+        uses: docker/build-push-action@v6
+        with:
+          context: ./http-server
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-httpd:latest
+          push: true
