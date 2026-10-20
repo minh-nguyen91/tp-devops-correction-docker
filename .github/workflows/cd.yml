@@ -29,26 +29,41 @@ jobs:
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
+      # version tag of the images = short hash of the tested commit (e.g. sha-1c87cf0)
+      # each delivery keeps its own tag, so a previous version can always be pulled again (rollback)
+      - name: Compute image version
+        id: version
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: echo "tag=sha-${HEAD_SHA::7}" >> "$GITHUB_OUTPUT"
+
       # this workflow only runs for main, so images are always pushed
+      # each image gets 2 tags: the immutable version tag and "latest" (moved to the newest version)
       - name: Build image and push backend
         uses: docker/build-push-action@v6
         with:
           # relative path to the place where source code with Dockerfile is located
           context: ./simple-api
           # Note: tags has to be all lower-case
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-simple-api:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-simple-api:${{ steps.version.outputs.tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-simple-api:latest
           push: true
 
       - name: Build image and push database
         uses: docker/build-push-action@v6
         with:
           context: ./database
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-database:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-database:${{ steps.version.outputs.tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-database:latest
           push: true
 
       - name: Build image and push httpd
         uses: docker/build-push-action@v6
         with:
           context: ./http-server
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-httpd:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-httpd:${{ steps.version.outputs.tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/tp-devops-httpd:latest
           push: true
