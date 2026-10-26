@@ -1,0 +1,17 @@
+# Variables shared by all the roles
+
+# Docker Hub images built and pushed by the CD workflow
+docker_hub_user: mybruddhah
+image_tag: latest
+
+# private network where the containers talk to each other by name
+docker_network: app-network
+
+# database
+database_container: database
+database_name: db
+database_user: usr
+database_password: pwd
+
+# Python of the virtual environment holding the Docker SDK, used by the docker_* modules
+docker_python_interpreter: /opt/docker_venv/bin/python

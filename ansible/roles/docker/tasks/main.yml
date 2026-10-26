@@ -1,0 +1,53 @@
+---
+# Install Docker Engine on Debian, following https://docs.docker.com/engine/install/debian/#install-using-the-repository
+
+# Install prerequisites for Docker
+- name: Install required packages
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - python3-venv
+    state: latest
+    update_cache: yes
+
+# Add Docker's official GPG key
+- name: Add Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+# Set up the Docker stable repository, signed by the key above
+- name: Add Docker APT repository
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_facts['distribution_release'] }} stable"
+    filename: docker
+    state: present
+    update_cache: yes
+
+# Install Docker
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+# Install the Docker SDK for Python in a virtual environment:
+# the docker_* modules need it, and Debian 12 forbids pip installs in the system Python
+- name: Install Docker SDK for Python in virtual environment
+  pip:
+    name: docker
+    virtualenv: /opt/docker_venv
+    virtualenv_command: python3 -m venv
+
+# Ensure Docker is running, and started on boot
+- name: Make sure Docker is running
+  service:
+    name: docker
+    state: started
+    enabled: true
+  tags: docker

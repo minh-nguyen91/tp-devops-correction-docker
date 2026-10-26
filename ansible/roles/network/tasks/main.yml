@@ -1,0 +1,8 @@
+---
+# Create the network shared by the database, the API and the proxy
+- name: Create the docker network
+  docker_network:
+    name: "{{ docker_network }}"
+    state: present
+  vars:
+    ansible_python_interpreter: "{{ docker_python_interpreter }}"
