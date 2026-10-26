@@ -1,0 +1,20 @@
+---
+# Launch the PostgreSQL database
+- name: Run the database
+  docker_container:
+    name: "{{ database_container }}"
+    image: "{{ docker_hub_user }}/tp-devops-database:{{ image_tag }}"
+    # always pull, so a new image pushed on Docker Hub is deployed
+    pull: always
+    restart_policy: unless-stopped
+    env:
+      POSTGRES_DB: "{{ database_name }}"
+      POSTGRES_USER: "{{ database_user }}"
+      POSTGRES_PASSWORD: "{{ database_password }}"
+    # named volume, so the data survives when the container is recreated
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+    networks:
+      - name: "{{ docker_network }}"
+  vars:
+    ansible_python_interpreter: "{{ docker_python_interpreter }}"

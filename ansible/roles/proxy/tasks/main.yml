@@ -1,0 +1,14 @@
+---
+# Launch the httpd reverse proxy, the only container reachable from outside
+- name: Run HTTPD
+  docker_container:
+    name: httpd
+    image: "{{ docker_hub_user }}/tp-devops-httpd:{{ image_tag }}"
+    pull: always
+    restart_policy: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - name: "{{ docker_network }}"
+  vars:
+    ansible_python_interpreter: "{{ docker_python_interpreter }}"

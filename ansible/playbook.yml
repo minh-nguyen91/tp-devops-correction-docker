@@ -1,0 +1,11 @@
+- hosts: all
+  gather_facts: true
+  become: true
+
+  # order matters: docker first, then the network, then the containers that use it
+  roles:
+    - docker
+    - network
+    - database
+    - app
+    - proxy
