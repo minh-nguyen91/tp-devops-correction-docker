@@ -92,8 +92,9 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Install Ansible
-        run: pip install ansible
+      # image providing Ansible (ansible/Dockerfile), instead of installing it on the runner
+      - name: Build Ansible image
+        run: docker build -t ansible-runner ./ansible
 
       # write the private key from the secrets where the inventory expects it (~/.ssh/id_rsa)
       # and trust the server's host key, as the runner has never connected to it
@@ -106,7 +107,24 @@ jobs:
           chmod 400 ~/.ssh/id_rsa
           ssh-keyscan -H minh.nguyen.takima.school >> ~/.ssh/known_hosts
 
-      # deploy the version tag built above rather than "latest"
+      # password used to decrypt inventories/group_vars/all/vault.yml
+      - name: Set up vault password
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass
+          chmod 600 ~/.vault_pass
+
+      # run the playbook inside the Ansible container: the ansible folder, the SSH key and
+      # the vault password are mounted in the container (~ is /root there)
+      # and the version tag built above is deployed rather than "latest"
       - name: Run Ansible playbook
-        working-directory: ./ansible
-        run: ansible-playbook -i inventories/setup.yml playbook.yml -e image_tag=${{ needs.build-and-push-docker-image.outputs.image_tag }}
+        run: |
+          docker run --rm \
+            -v "$PWD/ansible:/ansible" \
+            -v "$HOME/.ssh:/root/.ssh:ro" \
+            -v "$HOME/.vault_pass:/root/.vault_pass:ro" \
+            ansible-runner \
+            ansible-playbook -i inventories/setup.yml playbook.yml \
+              --vault-password-file /root/.vault_pass \
+              -e image_tag=${{ needs.build-and-push-docker-image.outputs.image_tag }}

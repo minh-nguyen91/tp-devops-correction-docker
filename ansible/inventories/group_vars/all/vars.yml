@@ -11,7 +11,8 @@ docker_network: app-network
 database_container: database
 database_name: db
 database_user: usr
-database_password: pwd
+# the real value is encrypted in vault.yml
+database_password: "{{ vault_database_password }}"
 
 # Python of the virtual environment holding the Docker SDK, used by the docker_* modules
 docker_python_interpreter: /opt/docker_venv/bin/python
