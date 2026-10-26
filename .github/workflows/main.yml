@@ -44,3 +44,15 @@ jobs:
 
       - name: Build front image
         run: docker build ./front
+
+  # check that the Ansible image builds and that the playbook is valid
+  check-ansible:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Ansible image
+        run: docker build -t ansible-runner ./ansible
+
+      - name: Check playbook syntax
+        run: docker run --rm -v "$PWD/ansible:/ansible" ansible-runner ansible-playbook -i inventories/setup.yml playbook.yml --syntax-check
