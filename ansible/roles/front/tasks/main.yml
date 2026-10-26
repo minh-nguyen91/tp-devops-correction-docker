@@ -1,0 +1,13 @@
+---
+# Launch the Vue.js front, served by nginx
+- name: Run the front
+  docker_container:
+    # the proxy forwards requests to http://front:80, so the name must stay "front"
+    name: front
+    image: "{{ docker_hub_user }}/tp-devops-front:{{ image_tag }}"
+    pull: always
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ docker_network }}"
+  vars:
+    ansible_python_interpreter: "{{ docker_python_interpreter }}"
